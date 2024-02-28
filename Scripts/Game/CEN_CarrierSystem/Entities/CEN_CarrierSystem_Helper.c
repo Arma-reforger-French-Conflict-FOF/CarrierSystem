@@ -15,7 +15,9 @@ class CEN_CarrierSystem_Helper : GenericEntity
 	private static const ResourceName HELPER_PREFAB_NAME = "{FF78613C1DAFF28F}Prefabs/Helpers/CEN_CarrierSystem_Helper.et";
 	private static const int SEARCH_POS_RADIUS = 5; // m
 	private static const float PRONE_CHECK_TIMEOUT = 100; // ms
+	private static const float RUN_CHECK_TIMEOUT = 100; // ms
 	private static const float CLEANUP_TIMEOUT = 1000; // ms
+	private static const float MAX_DYNAMIC_SPEED = 0.5; // % [0,1]
 	
 	//------------------------------------------------------------------------------------------------
 	//! Start <carrier> to carry the specified <carried>
@@ -64,6 +66,7 @@ class CEN_CarrierSystem_Helper : GenericEntity
 		ChimeraCharacter carrier = ChimeraCharacter.Cast(carrierCtrl.GetControlledEntity());
 		m_CarrierCharCtrl = SCR_CharacterControllerComponent.Cast(carrier.GetCharacterController());
 		GetGame().GetCallqueue().CallLater(PreventProneCarrier, PRONE_CHECK_TIMEOUT, true);
+		GetGame().GetCallqueue().CallLater(PreventRunCarrier, RUN_CHECK_TIMEOUT, true);
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -72,6 +75,14 @@ class CEN_CarrierSystem_Helper : GenericEntity
 	{
 		if (m_CarrierCharCtrl.GetStance() == ECharacterStance.PRONE)
 			m_CarrierCharCtrl.SetStanceChange(ECharacterStanceChange.STANCECHANGE_TOCROUCH);
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Prevent the carrier from running
+	protected void PreventRunCarrier()
+	{
+		if (m_CarrierCharCtrl.GetDynamicSpeed() > MAX_DYNAMIC_SPEED)
+			m_CarrierCharCtrl.SetDynamicSpeed(MAX_DYNAMIC_SPEED);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -177,6 +188,7 @@ class CEN_CarrierSystem_Helper : GenericEntity
 			carried.GetPhysics().SetInteractionLayer(m_iPhysicsLayerPreset);
 		
 		GetGame().GetCallqueue().Remove(PreventProneCarrier);
+		GetGame().GetCallqueue().Remove(PreventRunCarrier);
 	}
 	
 	//------------------------------------------------------------------------------------------------
