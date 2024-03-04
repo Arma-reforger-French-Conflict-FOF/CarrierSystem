@@ -16,6 +16,7 @@ class CEN_CarrierSystem_Helper : GenericEntity
 	private static const int SEARCH_POS_RADIUS = 5; // m
 	private static const float PRONE_CHECK_TIMEOUT = 100; // ms
 	private static const float RUN_CHECK_TIMEOUT = 100; // ms
+	private static const float WPN_CHECK_TIMEOUT = 100; // ms
 	private static const float CLEANUP_TIMEOUT = 1000; // ms
 	private static const float MAX_DYNAMIC_SPEED = 0.5; // % [0,1]
 	
@@ -67,6 +68,7 @@ class CEN_CarrierSystem_Helper : GenericEntity
 		m_CarrierCharCtrl = SCR_CharacterControllerComponent.Cast(carrier.GetCharacterController());
 		GetGame().GetCallqueue().CallLater(PreventProneCarrier, PRONE_CHECK_TIMEOUT, true);
 		GetGame().GetCallqueue().CallLater(PreventRunCarrier, RUN_CHECK_TIMEOUT, true);
+		GetGame().GetCallqueue().CallLater(PreventPrimaryWeaponCarrier, WPN_CHECK_TIMEOUT, true);
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -83,6 +85,19 @@ class CEN_CarrierSystem_Helper : GenericEntity
 	{
 		if (m_CarrierCharCtrl.GetDynamicSpeed() > MAX_DYNAMIC_SPEED)
 			m_CarrierCharCtrl.SetDynamicSpeed(MAX_DYNAMIC_SPEED);
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Prevent the carrier from using primary weapons
+	protected void PreventPrimaryWeaponCarrier()
+	{
+		
+		BaseWeaponManagerComponent c_WeaponManager = m_CarrierCharCtrl.GetWeaponManagerComponent();
+		WeaponSlotComponent c_WeaponSlot = c_WeaponManager.GetCurrentSlot();
+		if (c_WeaponSlot.GetWeaponSlotIndex() <= 1) {
+			m_CarrierCharCtrl.SetSafety(true, false);
+			m_CarrierCharCtrl.SetWeaponRaised(false);
+		}
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -189,6 +204,7 @@ class CEN_CarrierSystem_Helper : GenericEntity
 		
 		GetGame().GetCallqueue().Remove(PreventProneCarrier);
 		GetGame().GetCallqueue().Remove(PreventRunCarrier);
+		GetGame().GetCallqueue().Remove(PreventPrimaryWeaponCarrier);
 	}
 	
 	//------------------------------------------------------------------------------------------------
